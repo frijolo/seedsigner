@@ -129,18 +129,25 @@ class FlowStep:
         * expected_view:         verify that the current step in the sequence instantiates the right View.
         * before_run:            function that takes a View instance as an arg and modifies it before running the View.
         * screen_return_value:   mocked Screen interaction result: raw return value as if from the Screen.
+        * screen_return_values:  a LIST of successive return values: the nth run_screen() call within
+                                this FlowStep returns the nth item. For a View that calls run_screen()
+                                many times (e.g. once per word). Distinct from screen_return_value so a
+                                literal list return value (e.g. []) still works.
         * button_data_selection: mocked Screen interaction result: the View.button_data value of the desired option.
         * is_redirect:           expects the Destination to specify `skip_current_view=True`.
     """
     expected_view: type[View] = None
     before_run: Callable[[View], None] = None
     screen_return_value: int | str = None
+    screen_return_values: list = None
     button_data_selection: str | tuple = None
     is_redirect: bool = False
 
     def __post_init__(self):
         if self.screen_return_value is not None and self.button_data_selection is not None:
             raise Exception("Can't specify both `screen_return_value` and `button_data_selection`")
+        if self.screen_return_values is not None and (self.screen_return_value is not None or self.button_data_selection is not None):
+            raise Exception("Can't specify `screen_return_values` alongside `screen_return_value` or `button_data_selection`")
 
 
 
@@ -277,9 +284,19 @@ class FlowTest(BaseTest):
                         else:
                             raise Exception(f"Can't specify `FlowStep.button_data_selection` if `button_data` isn't a kwarg in {view.__class__.__name__}'s run_screen()")
 
+                    elif cur_flow_step.screen_return_values is not None:
+                        # A list of successive return values: the nth run_screen() call
+                        # within this FlowStep returns the nth item. This lets a single
+                        # View that calls run_screen() many times (e.g. once per word,
+                        # plus a feedback screen) be driven with a different value each
+                        # call (e.g. a rejected roll followed by valid rolls).
+                        if not cur_flow_step.screen_return_values:
+                            raise FlowBasedTestException(f"FlowStep for {view.__class__.__name__} ran out of screen_return_values before the View finished")
+                        return cur_flow_step.screen_return_values.pop(0)
+
                     elif type(cur_flow_step.screen_return_value) in [StopFlowBasedTest, FlowBasedTestException]:
                         raise cur_flow_step.screen_return_value
-                    
+
                     elif isinstance(cur_flow_step.screen_return_value, Exception):
                         # The FlowStep wants to mimic the Screen raising an exception.
                         raise cur_flow_step.screen_return_value

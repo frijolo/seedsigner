@@ -281,6 +281,57 @@ class TestToolsFlows(FlowTest):
             ])
 
 
+    def test__dice_wordlist__new_seed__flow(self):
+        """
+        The "New seed (dice words)" Tools flow. Each 5-dice roll maps to exactly one
+        wordlist word; here the same always-valid roll ("41115" -> peasant) is entered
+        12 times to complete a 12-word mnemonic, which routes to the seed warning.
+        """
+        self.run_sequence([
+            FlowStep(MainMenuView, button_data_selection=MainMenuView.TOOLS),
+            FlowStep(tools_views.ToolsMenuView, button_data_selection=tools_views.ToolsMenuView.DICE_WORDLIST),
+            FlowStep(tools_views.ToolsDiceWordlistMnemonicLengthView, button_data_selection=tools_views.ToolsDiceWordlistMnemonicLengthView.TWELVE),
+            FlowStep(tools_views.ToolsDiceWordlistEntryView, screen_return_value="41115"),
+            FlowStep(seed_views.SeedWordsWarningView),
+        ])
+
+
+    def test__dice_wordlist__new_seed__flow__rejection(self):
+        """
+        The "New seed (dice words)" Tools flow exercising the REJECTION branch: the
+        first roll ("66666" -> base-6 value 7775) is out of range, so the View shows
+        the re-roll screen and loops; the next 12 rolls ("41115" -> peasant) are
+        accepted. A list of successive `screen_return_value` entries drives each
+        per-word and per-feedback run_screen() call in order.
+        """
+        screen_return_values = ["66666", "x"]          # rejected roll + re-roll prompt
+        screen_return_values += ["41115", "x"] * 12    # 12 valid rolls, each + feedback screen
+
+        self.run_sequence([
+            FlowStep(MainMenuView, button_data_selection=MainMenuView.TOOLS),
+            FlowStep(tools_views.ToolsMenuView, button_data_selection=tools_views.ToolsMenuView.DICE_WORDLIST),
+            FlowStep(tools_views.ToolsDiceWordlistMnemonicLengthView, button_data_selection=tools_views.ToolsDiceWordlistMnemonicLengthView.TWELVE),
+            FlowStep(tools_views.ToolsDiceWordlistEntryView, screen_return_values=screen_return_values),
+            FlowStep(seed_views.SeedWordsWarningView),
+        ])
+
+
+    def test__dice_wordlist__new_seed__flow__24_words(self):
+        """
+        The "New seed (dice words)" Tools flow for the 24-word length: 24 valid rolls
+        ("41115" -> peasant) complete a 24-word mnemonic and route to the seed warning.
+        """
+        screen_return_values = ["41115", "x"] * 24    # 24 valid rolls, each + feedback screen
+
+        self.run_sequence([
+            FlowStep(MainMenuView, button_data_selection=MainMenuView.TOOLS),
+            FlowStep(tools_views.ToolsMenuView, button_data_selection=tools_views.ToolsMenuView.DICE_WORDLIST),
+            FlowStep(tools_views.ToolsDiceWordlistMnemonicLengthView, button_data_selection=tools_views.ToolsDiceWordlistMnemonicLengthView.TWENTY_FOUR),
+            FlowStep(tools_views.ToolsDiceWordlistEntryView, screen_return_values=screen_return_values),
+            FlowStep(seed_views.SeedWordsWarningView),
+        ])
+
+
 class TestToolsImageEntropyFlows(FlowTest):
 
     def test__image_entropy__incorrect_preview_frame_count_aborts(self):
