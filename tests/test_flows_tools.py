@@ -332,6 +332,40 @@ class TestToolsFlows(FlowTest):
         ])
 
 
+    def test__dice_wordlist__last_word__shows_rolled_and_final_word(self):
+        """
+        When the last rolled word is corrected by the BIP-39 checksum, the per-word
+        feedback screen must show BOTH the word the user rolled and the final word that
+        will actually be stored -- not only the latter, later, in the seed backup.
+
+        12x roll "11111" -> 12x "abandon"; the checksum corrects the final word to "about".
+        """
+        from unittest.mock import patch
+        from seedsigner.views.view import View
+        from seedsigner.gui.screens.screen import LargeIconStatusScreen
+        from seedsigner.gui.screens.tools_screens import ToolsDiceWordlistRollScreen
+
+        calls = []
+        def fake_run_screen(self_view, Screen_cls, **kwargs):
+            calls.append((Screen_cls, kwargs))
+            # The roll screen returns the dice roll; the status screen returns "Next" (ignored).
+            return "11111" if Screen_cls is ToolsDiceWordlistRollScreen else 0
+
+        view = tools_views.ToolsDiceWordlistEntryView(num_words=12)
+        with patch.object(View, "run_screen", fake_run_screen):
+            destination = view.run()
+
+        # Routed to the seed warning.
+        assert destination.View_cls == seed_views.SeedWordsWarningView
+
+        # The last status screen (the 12th word) must surface both words: the final
+        # (stored) word as the headline and the rolled word in the body text.
+        last_status_kwargs = [kw for cls, kw in calls if cls is LargeIconStatusScreen][-1]
+        assert last_status_kwargs.get("status_headline") == "about"
+        assert last_status_kwargs.get("status_headline_untranslated")
+        assert "abandon" in last_status_kwargs.get("text")
+
+
 class TestToolsImageEntropyFlows(FlowTest):
 
     def test__image_entropy__incorrect_preview_frame_count_aborts(self):

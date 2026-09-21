@@ -293,11 +293,15 @@ results are in `docs/dice_wordlist_implementation.md`.
   `dice_wordlist_roll_word(roll, lang)`, and
   `generate_mnemonic_from_dice_wordlist(rolls, num_words, lang)`, which reuses the
   existing `calculate_checksum` for the final word. Constants `DICE_WORDLIST__*`.
-- **UI flow** (`seedsigner/views/tools_views.py`): a Tools sub-flow —
-  `ToolsDiceWordlistMnemonicLengthView` (12/24) → `ToolsDiceWordlistEntryView`, which
-  enters **five dice at a time** via `ToolsDiceWordlistRollScreen` (a `KeyboardScreen`),
-  shows each accepted word (or prompts a re-roll when the roll is out of range) until
-  12/24 words are collected, then stores the seed and routes to `SeedWordsWarningView`.
+ - **UI flow** (`seedsigner/views/tools_views.py`): a Tools sub-flow —
+   `ToolsDiceWordlistMnemonicLengthView` (12/24) → `ToolsDiceWordlistEntryView`, which
+   enters **five dice at a time** via `ToolsDiceWordlistRollScreen` (a `KeyboardScreen`),
+   shows each accepted word (or prompts a re-roll when the roll is out of range) until
+   12/24 words are collected, then stores the seed and routes to `SeedWordsWarningView`.
+   On the **final** word the checksum is computed immediately: if it corrects the rolled
+   word, the feedback screen shows **both** the final (stored) word — prominently, as the
+   headline — and the word that was actually rolled, so the user sees the substitution
+   while generating rather than only in the seed backup.
 - **Menu/entry point:** a new `"New seed (dice words)"` option (icon `DICE_FIVE`) in
   `ToolsMenuView`, alongside the image (`"New seed (image)"`) and dice
   (`"New seed (dice)"`) seed-generation options. The three labels are kept distinct

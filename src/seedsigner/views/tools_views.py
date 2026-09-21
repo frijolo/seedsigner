@@ -365,28 +365,60 @@ class ToolsDiceWordlistEntryView(View):
                 continue
 
             words.append(word)
-            # The final word is adjusted to satisfy the BIP-39 checksum.
+
+            # The final word is adjusted to satisfy the BIP-39 checksum. Compute it here,
+            # once the last word is known, so the user can see both the word they rolled
+            # and the word that will actually be stored, rather than finding out only in
+            # the seed backup.
             if len(words) == self.num_words:
-                # TRANSLATOR_NOTE: the last rolled word may change to fix the checksum
-                text = _("This word may be adjusted to satisfy the BIP-39 checksum.")
+                final_mnemonic = mnemonic_generation.calculate_checksum(words, lang)
+                final_word = final_mnemonic[-1]
+                if final_word != word:
+                    # The roll was corrected: show the final (stored) word prominently and
+                    # tell the user which word they actually rolled.
+                    self.run_screen(
+                        LargeIconStatusScreen,
+                        title=_("Word {} of {}").format(len(words), self.num_words),
+                        status_icon_name=SeedSignerIconConstants.WARNING,
+                        status_color=GUIConstants.WARNING_COLOR,
+                        # The final word is data the user must read verbatim (it is what gets
+                        # stored), so render it through the untranslated path.
+                        status_headline=final_word,
+                        status_headline_untranslated=True,
+                        # TRANSLATOR_NOTE: {} is the word the user rolled, before checksum correction
+                        text=_("Rolled {}, but the BIP-39 checksum requires the word above.").format(word),
+                        button_data=[ButtonOption("Next")],
+                        show_back_button=False,
+                    )
+                else:
+                    # The roll already satisfies the checksum; no correction is needed.
+                    self.run_screen(
+                        LargeIconStatusScreen,
+                        title=_("Word {} of {}").format(len(words), self.num_words),
+                        # The word is data the user must read verbatim, not a translatable UI
+                        # string: run it through the untranslated path so a word that collides
+                        # with a translatable string is never shown in its translated form.
+                        status_headline=word,
+                        status_headline_untranslated=True,
+                        text="",
+                        button_data=[ButtonOption("Next")],
+                        show_back_button=False,
+                    )
             else:
-                text = ""
-            self.run_screen(
-                LargeIconStatusScreen,
-                title=_("Word {} of {}").format(len(words), self.num_words),
-                # The word is data the user must read verbatim, not a translatable UI
-                # string: run it through the untranslated path so a word that collides
-                # with a translatable string is never shown in its translated form.
-                status_headline=word,
-                status_headline_untranslated=True,
-                text=text,
-                button_data=[ButtonOption("Next")],
-                show_back_button=False,
-            )
+                self.run_screen(
+                    LargeIconStatusScreen,
+                    title=_("Word {} of {}").format(len(words), self.num_words),
+                    # The word is data the user must read verbatim, not a translatable UI
+                    # string: run it through the untranslated path so a word that collides
+                    # with a translatable string is never shown in its translated form.
+                    status_headline=word,
+                    status_headline_untranslated=True,
+                    text="",
+                    button_data=[ButtonOption("Next")],
+                    show_back_button=False,
+                )
 
-        final_mnemonic = mnemonic_generation.calculate_checksum(words, lang)
-
-        # Add the mnemonic as an in-memory Seed
+        # Add the mnemonic as an in-memory Seed (final_mnemonic was computed at the last word)
         seed = Seed(final_mnemonic, wordlist_language_code=lang)
         self.controller.storage.set_pending_seed(seed)
 
