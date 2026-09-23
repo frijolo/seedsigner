@@ -1,9 +1,9 @@
 <!DOCTYPE html>
-<html lang="es">
+<html lang="en">
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
-<title>Dados → Palabra BIP39</title>
+<title>Dice → Word BIP39</title>
 <style>
 :root {
   --btc: #F7931A; --btc-dark: #c77610;
@@ -57,53 +57,53 @@ h1 img { height: 1.1em; vertical-align: middle; }
 </head>
 <body>
 <div class="wrap">
-<h1><img src="dice/d6_6.svg" class="dice sm" style="display:inline-block"> Dados → Palabra</h1>
-<p class="sub">Convierte tus tiradas de dados en una palabra de tu semilla</p>
+<h1><img src="dice/d6_6.svg" class="dice sm" style="display:inline-block"> Dice → Word</h1>
+<p class="sub">Turn your dice rolls into a word in your seed</p>
 
 <!-- === MÉTODO: COLUMNAS === -->
 <div class="recipe">
-<h3>Por columnas</h3>
-<p class="excap">Ejemplo: la tirada 5 · 2 · 6 · 6 · 4 · 5 da la palabra «satoshi»</p>
+<h3>By columns</h3>
+<p class="excap">Example: the roll 5 · 2 · 6 · 6 · 4 · 5 gives the word "satoshi"</p>
 
 <div class="sumwrap">
 <div class="cols">
 <div class="lane">
-  <img class="dice" src="dice/d6_5.svg" alt="dado 5">
+  <img class="dice" src="dice/d6_5.svg" alt="die 5">
   <div class="larr">− 1</div>
   <div class="lbox calc">4</div>
   <div class="larr">× 7776</div>
   <div class="lbox prod">31104</div>
 </div>
 <div class="lane">
-  <img class="dice" src="dice/d6_2.svg" alt="dado 2">
+  <img class="dice" src="dice/d6_2.svg" alt="die 2">
   <div class="larr">− 1</div>
   <div class="lbox calc">1</div>
   <div class="larr">× 1296</div>
   <div class="lbox prod">1296</div>
 </div>
 <div class="lane">
-  <img class="dice" src="dice/d6_6.svg" alt="dado 6">
+  <img class="dice" src="dice/d6_6.svg" alt="die 6">
   <div class="larr">− 1</div>
   <div class="lbox calc">5</div>
   <div class="larr">× 216</div>
   <div class="lbox prod">1080</div>
 </div>
 <div class="lane">
-  <img class="dice" src="dice/d6_6.svg" alt="dado 6">
+  <img class="dice" src="dice/d6_6.svg" alt="die 6">
   <div class="larr">− 1</div>
   <div class="lbox calc">5</div>
   <div class="larr">× 36</div>
   <div class="lbox prod">180</div>
 </div>
 <div class="lane">
-  <img class="dice" src="dice/d6_4.svg" alt="dado 4">
+  <img class="dice" src="dice/d6_4.svg" alt="die 4">
   <div class="larr">− 1</div>
   <div class="lbox calc">3</div>
   <div class="larr">× 6</div>
   <div class="lbox prod">18</div>
 </div>
 <div class="lane">
-  <img class="dice" src="dice/d6_5.svg" alt="dado 5">
+  <img class="dice" src="dice/d6_5.svg" alt="die 5">
   <div class="larr">− 1</div>
   <div class="lbox calc">4</div>
   <div class="larr">× 1</div>
@@ -119,34 +119,34 @@ h1 img { height: 1.1em; vertical-align: middle; }
 <div class="vflow">
   <div class="farr">÷ 22</div>
   <div class="fbox num">1531</div>
-  <div class="farr">¿en rango 0–2047?</div>
+  <div class="farr">in range 0–2047?</div>
   <div class="fbox word">satoshi ✓</div>
 </div>
 </div>
 
 <div class="steps">
-<div class="stp"><span class="stp-n">1</span><span class="stp-t">Tira 6 dados y colócalos en una fila, en el orden en que salieron.</span></div>
-<div class="stp"><span class="stp-n">2</span><span class="stp-t">A cada uno réstate 1. (¿Sacaste un 1? Ahora es 0.)</span></div>
-<div class="stp"><span class="stp-n">3</span><span class="stp-t">Multiplica cada resultado por su peso, de izquierda a derecha: <strong>7776, 1296, 216, 36, 6, 1</strong></span></div>
-<div class="stp"><span class="stp-n">4</span><span class="stp-t">Suma los 6 productos. Ese es tu <strong>valor</strong>.</span></div>
-<div class="stp"><span class="stp-n">5</span><span class="stp-t">Divide entre <strong>22</strong> y quédate con la <strong>parte entera</strong> (si sobra un resto, ignóralo). ¿Da ≤ 2047? → ¡es tu palabra! ¿Da ≥ 2048? → tira de nuevo.</span></div>
+<div class="stp"><span class="stp-n">1</span><span class="stp-t">Roll six dice and place them in a row, in the order they came up.</span></div>
+<div class="stp"><span class="stp-n">2</span><span class="stp-t">Subtract 1 from each. (Rolled a 1? It's now 0.)</span></div>
+<div class="stp"><span class="stp-n">3</span><span class="stp-t">Multiply each result by its weight, left to right: <strong>7776, 1296, 216, 36, 6, 1</strong></span></div>
+<div class="stp"><span class="stp-n">4</span><span class="stp-t">Add the six products together. That's your <strong>value</strong>.</span></div>
+<div class="stp"><span class="stp-n">5</span><span class="stp-t">Divide by <strong>22</strong> and keep only the <strong>integer part</strong> (ignore any remainder). Result ≤ 2047? → that's your word! Result ≥ 2048? → re-roll.</span></div>
 </div>
 
 <div class="note">
-<strong>💡</strong> Los pesos son potencias de 6: 6⁵=7776, 6⁴=1296, 6³=216, 6²=36, 6¹=6, 6⁰=1. Los memorizas una sola vez.
+<strong>💡</strong> The weights are powers of 6: 6⁵=7776, 6⁴=1296, 6³=216, 6²=36, 6¹=6, 6⁰=1. You only need to memorize them once.
 </div>
 
 <div class="note">
-<strong>🔢 El índice empieza en 0.</strong> El número de la división es la posición de la palabra en la lista BIP39 <em>contando desde 0</em>: «abandon» = 0 … «zoo» = 2047. En el ejemplo, «satoshi» es la palabra nº <strong>1531</strong>.<br><br>
-Si tu tabla impresa numera las palabras empezando por <strong>1</strong> («abandon» = 1), búscala en la fila <strong>1532</strong>: simplemente <strong>suma 1</strong> al índice.<br><br>
-<strong>Regla rápida:</strong> mira dónde está «abandon» en tu tabla. Si está en la posición 1, suma 1 al número que te salió. Si está en la posición 0, no le sumes nada.
+<strong>🔢 The index starts at 0.</strong> The division result is the word's position in the BIP-39 wordlist <em>counting from 0</em>: "abandon" = 0 … "zoo" = 2047. In the example, "satoshi" is word #<strong>1531</strong>.<br><br>
+If your printed wordlist numbers words starting from <strong>1</strong> ("abandon" = 1), look at row <strong>1532</strong>: simply <strong>add 1</strong> to the index.<br><br>
+<strong>Quick rule:</strong> check where "abandon" sits in your wordlist. If it's at position 1, add 1 to your result. If it's at position 0, use it as-is.
 </div>
 
 <div class="note">
-<strong>♻️ Casi nunca tendrás que tirar de nuevo.</strong> Solo se descarta una tirada cuando el valor da un índice ≥ 2048, y eso ocurre en unas 3 de cada 100 tiradas. Si te pasa muchas más veces, revisa que tus dados sean justos.
+<strong>♻️ You'll almost never need to re-roll.</strong> A roll is rejected only when the value maps to an index ≥ 2048, which happens in about 3 out of every 100 rolls. If it happens much more often, check that your dice are fair.
 </div>
 
-<p class="credit">Imágenes de dados: Wikimedia Commons (CC BY-SA 3.0) · Lista de palabras: BIP-39</p>
+<p class="credit">Dice images: Wikimedia Commons (CC BY-SA 3.0) · Wordlist: BIP-39</p>
 
 </div>
 </body>
