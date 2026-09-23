@@ -1,0 +1,153 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Dados → Palabra BIP39</title>
+<style>
+:root {
+  --btc: #F7931A; --btc-dark: #c77610;
+  --bg: #0C0C0D; --bg2: #141414; --card: #1a1a1a; --border: #2a2a2a;
+  --text: #e8e8e8; --dim: #999; --green: #4caf50;
+}
+* { margin: 0; padding: 0; box-sizing: border-box; }
+body { font-family: 'Segoe UI', system-ui, sans-serif; background: var(--bg); color: var(--text); padding: 20px; line-height: 1.6; }
+h1 { text-align: center; font-size: 2em; margin-bottom: 4px; color: var(--btc); }
+h1 img { height: 1.1em; vertical-align: middle; }
+.sub { text-align: center; color: var(--dim); margin-bottom: 24px; }
+.wrap { max-width: 820px; margin: 0 auto; }
+
+.recipe { background: var(--bg2); border-radius: 10px; padding: 20px 10px; margin: 12px 0; border: 2px solid var(--border); }
+.recipe h3 { color: var(--btc); font-size: 1em; margin-bottom: 16px; text-align: center; }
+.excap { text-align: center; color: var(--dim); font-size: 0.85em; margin-bottom: 14px; font-style: italic; }
+
+/* dice */
+.dice { height: 40px; width: auto; display: block; }
+.dice.sm { height: 26px; }
+
+/* Columns: one lane per die */
+.cols { display: flex; justify-content: center; gap: 10px; }
+.lane { display: flex; flex-direction: column; align-items: center; gap: 12px; width: 80px; }
+.lbox { width: 100%; padding: 5px 4px; border-radius: 6px; text-align: center; font-weight: bold; font-size: 0.95em; }
+.lbox.calc { background: var(--bg); border: 2px solid #666; color: #fff; }
+.lbox.weight { background: #2a1f0a; border: 2px solid var(--btc-dark); color: var(--btc); font-size: 0.9em; }
+.lbox.prod { background: #1a1a2e; border: 2px solid #7c4dff; color: #b388ff; }
+.larr { color: var(--btc); font-weight: 700; font-size: 0.92em; line-height: 1; padding: 0; text-align: center; }
+
+/* Sum block: full-width result of the 6 products */
+.sumwrap { width: fit-content; margin: 0 auto; }
+.plusrow { display: flex; gap: 10px; margin-top: 8px; }
+.plusrow span { width: 80px; text-align: center; color: var(--btc); font-weight: 700; font-size: 1.1em; }
+.sumbox { margin-top: 8px; padding: 10px 12px; border-radius: 6px; background: #1a1a2e; border: 2px solid #7c4dff; color: #b388ff; font-weight: 700; text-align: center; }
+.vflow { display: flex; flex-direction: column; align-items: center; gap: 12px; margin-top: 12px; }
+.farr { color: var(--btc); font-weight: 700; font-size: 0.95em; }
+.fbox { padding: 8px 18px; border-radius: 6px; font-weight: 700; text-align: center; font-size: 1.05em; }
+.fbox.num { background: #2a1f0a; border: 2px solid var(--btc); color: var(--btc); }
+.fbox.word { background: #1a2e1a; border: 2px solid var(--green); color: var(--green); font-size: 1.15em; }
+
+/* Steps */
+.steps { margin-top: 18px; }
+.stp { display: flex; align-items: flex-start; gap: 10px; padding: 8px 12px; margin: 6px 0; background: var(--bg2); border-radius: 6px; border-left: 3px solid var(--btc); font-size: 0.92em; }
+.stp-n { background: var(--btc); color: #000; width: 22px; height: 22px; border-radius: 50%; display: flex; align-items: center; justify-content: center; font-weight: bold; font-size: 0.75em; flex-shrink: 0; }
+.stp-t { flex: 1; }
+
+.note { background: var(--bg2); border-left: 4px solid var(--btc); padding: 10px 14px; margin: 14px 0; border-radius: 0 6px 6px 0; font-size: 0.87em; color: #ccc; }
+.credit { text-align: center; color: #555; font-size: 0.75em; margin-top: 24px; }
+</style>
+</head>
+<body>
+<div class="wrap">
+<h1><img src="dice/d6_6.svg" class="dice sm" style="display:inline-block"> Dados → Palabra</h1>
+<p class="sub">Convierte tus tiradas de dados en una palabra de tu semilla</p>
+
+<!-- === MÉTODO: COLUMNAS === -->
+<div class="recipe">
+<h3>Por columnas</h3>
+<p class="excap">Ejemplo: la tirada 5 · 2 · 6 · 6 · 4 · 5 da la palabra «satoshi»</p>
+
+<div class="sumwrap">
+<div class="cols">
+<div class="lane">
+  <img class="dice" src="dice/d6_5.svg" alt="dado 5">
+  <div class="larr">− 1</div>
+  <div class="lbox calc">4</div>
+  <div class="larr">× 7776</div>
+  <div class="lbox prod">31104</div>
+</div>
+<div class="lane">
+  <img class="dice" src="dice/d6_2.svg" alt="dado 2">
+  <div class="larr">− 1</div>
+  <div class="lbox calc">1</div>
+  <div class="larr">× 1296</div>
+  <div class="lbox prod">1296</div>
+</div>
+<div class="lane">
+  <img class="dice" src="dice/d6_6.svg" alt="dado 6">
+  <div class="larr">− 1</div>
+  <div class="lbox calc">5</div>
+  <div class="larr">× 216</div>
+  <div class="lbox prod">1080</div>
+</div>
+<div class="lane">
+  <img class="dice" src="dice/d6_6.svg" alt="dado 6">
+  <div class="larr">− 1</div>
+  <div class="lbox calc">5</div>
+  <div class="larr">× 36</div>
+  <div class="lbox prod">180</div>
+</div>
+<div class="lane">
+  <img class="dice" src="dice/d6_4.svg" alt="dado 4">
+  <div class="larr">− 1</div>
+  <div class="lbox calc">3</div>
+  <div class="larr">× 6</div>
+  <div class="lbox prod">18</div>
+</div>
+<div class="lane">
+  <img class="dice" src="dice/d6_5.svg" alt="dado 5">
+  <div class="larr">− 1</div>
+  <div class="lbox calc">4</div>
+  <div class="larr">× 1</div>
+  <div class="lbox prod">4</div>
+</div>
+</div>
+<div class="plusrow">
+  <span>+</span><span>+</span><span>+</span><span>+</span><span>+</span><span>+</span>
+</div>
+<div class="sumbox">31104 + 1296 + 1080 + 180 + 18 + 4 = 33682</div>
+</div>
+
+<div class="vflow">
+  <div class="farr">÷ 22</div>
+  <div class="fbox num">1531</div>
+  <div class="farr">¿en rango 0–2047?</div>
+  <div class="fbox word">satoshi ✓</div>
+</div>
+</div>
+
+<div class="steps">
+<div class="stp"><span class="stp-n">1</span><span class="stp-t">Tira 6 dados y colócalos en una fila, en el orden en que salieron.</span></div>
+<div class="stp"><span class="stp-n">2</span><span class="stp-t">A cada uno réstate 1. (¿Sacaste un 1? Ahora es 0.)</span></div>
+<div class="stp"><span class="stp-n">3</span><span class="stp-t">Multiplica cada resultado por su peso, de izquierda a derecha: <strong>7776, 1296, 216, 36, 6, 1</strong></span></div>
+<div class="stp"><span class="stp-n">4</span><span class="stp-t">Suma los 6 productos. Ese es tu <strong>valor</strong>.</span></div>
+<div class="stp"><span class="stp-n">5</span><span class="stp-t">Divide entre <strong>22</strong> y quédate con la <strong>parte entera</strong> (si sobra un resto, ignóralo). ¿Da ≤ 2047? → ¡es tu palabra! ¿Da ≥ 2048? → tira de nuevo.</span></div>
+</div>
+
+<div class="note">
+<strong>💡</strong> Los pesos son potencias de 6: 6⁵=7776, 6⁴=1296, 6³=216, 6²=36, 6¹=6, 6⁰=1. Los memorizas una sola vez.
+</div>
+
+<div class="note">
+<strong>🔢 El índice empieza en 0.</strong> El número de la división es la posición de la palabra en la lista BIP39 <em>contando desde 0</em>: «abandon» = 0 … «zoo» = 2047. En el ejemplo, «satoshi» es la palabra nº <strong>1531</strong>.<br><br>
+Si tu tabla impresa numera las palabras empezando por <strong>1</strong> («abandon» = 1), búscala en la fila <strong>1532</strong>: simplemente <strong>suma 1</strong> al índice.<br><br>
+<strong>Regla rápida:</strong> mira dónde está «abandon» en tu tabla. Si está en la posición 1, suma 1 al número que te salió. Si está en la posición 0, no le sumes nada.
+</div>
+
+<div class="note">
+<strong>♻️ Casi nunca tendrás que tirar de nuevo.</strong> Solo se descarta una tirada cuando el valor da un índice ≥ 2048, y eso ocurre en unas 3 de cada 100 tiradas. Si te pasa muchas más veces, revisa que tus dados sean justos.
+</div>
+
+<p class="credit">Imágenes de dados: Wikimedia Commons (CC BY-SA 3.0) · Lista de palabras: BIP-39</p>
+
+</div>
+</body>
+</html>
