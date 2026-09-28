@@ -6,7 +6,7 @@ from gettext import gettext as _
 
 from seedsigner.gui.components import FontAwesomeIconConstants, GUIConstants, SeedSignerIconConstants, resize_image_to_fill
 from seedsigner.gui.screens import RET_CODE__BACK_BUTTON, ButtonListScreen
-from seedsigner.gui.screens.screen import ButtonOption
+from seedsigner.gui.screens.screen import ButtonOption, LargeIconStatusScreen
 from seedsigner.helpers import mnemonic_generation
 from seedsigner.models.seed import Seed
 from seedsigner.models.settings_definition import SettingsConstants
@@ -21,12 +21,13 @@ logger = logging.getLogger(__name__)
 class ToolsMenuView(View):
     IMAGE = ButtonOption("New seed", FontAwesomeIconConstants.CAMERA)
     DICE = ButtonOption("New seed", FontAwesomeIconConstants.DICE)
+    DICE_WORDLIST = ButtonOption("New seed (dice words)", FontAwesomeIconConstants.DICE_SIX)
     KEYBOARD = ButtonOption("Calc 12th/24th word", FontAwesomeIconConstants.KEYBOARD)
     ADDRESS_EXPLORER = ButtonOption("Address explorer")
     VERIFY_ADDRESS = ButtonOption("Verify address")
 
     def run(self):
-        button_data = [self.IMAGE, self.DICE, self.KEYBOARD, self.ADDRESS_EXPLORER, self.VERIFY_ADDRESS]
+        button_data = [self.IMAGE, self.DICE, self.DICE_WORDLIST, self.KEYBOARD, self.ADDRESS_EXPLORER, self.VERIFY_ADDRESS]
 
         selected_menu_num = self.run_screen(
             ButtonListScreen,
@@ -43,6 +44,9 @@ class ToolsMenuView(View):
 
         elif button_data[selected_menu_num] == self.DICE:
             return Destination(ToolsDiceEntropyMnemonicLengthView)
+
+        elif button_data[selected_menu_num] == self.DICE_WORDLIST:
+            return Destination(ToolsDiceWordlistMnemonicLengthView)
 
         elif button_data[selected_menu_num] == self.KEYBOARD:
             return Destination(ToolsCalcFinalWordNumWordsView)
@@ -282,6 +286,118 @@ class ToolsDiceEntropyEntryView(View):
 
         # Add the mnemonic as an in-memory Seed
         seed = Seed(dice_seed_phrase, wordlist_language_code=self.settings.get_value(SettingsConstants.SETTING__WORDLIST_LANGUAGE))
+        self.controller.storage.set_pending_seed(seed)
+
+        # Cannot return BACK to this View
+        return Destination(SeedWordsWarningView, view_args={"seed": None}, clear_history=True)
+
+
+
+"""****************************************************************************
+    Dice wordlist Views
+    (direct 6-dice -> wordlist word method; see docs/dice_wordlist.md)
+****************************************************************************"""
+class ToolsDiceWordlistMnemonicLengthView(View):
+    TWELVE = ButtonOption("12 words", return_data=12)
+    TWENTY_FOUR = ButtonOption("24 words", return_data=24)
+
+    def run(self):
+        button_data = [self.TWELVE, self.TWENTY_FOUR]
+        selected_menu_num = self.run_screen(
+            ButtonListScreen,
+            title=_("Mnemonic Length"),
+            is_bottom_list=True,
+            is_button_text_centered=True,
+            button_data=button_data,
+        )
+
+        if selected_menu_num == RET_CODE__BACK_BUTTON:
+            return Destination(BackStackView)
+
+        return Destination(ToolsDiceWordlistEntryView, view_args=dict(num_words=button_data[selected_menu_num].return_data))
+
+
+
+class ToolsDiceWordlistEntryView(View):
+    def __init__(self, num_words: int):
+        # Fail fast (before the user spends any dice) rather than after all the rolls.
+        if num_words not in (12, 24):
+            raise ValueError(f"num_words must be 12 or 24; got {num_words}")
+        super().__init__()
+        self.num_words = num_words
+
+
+    def run(self):
+        from seedsigner.gui.screens.tools_screens import ToolsDiceWordlistRollScreen
+
+        lang = self.settings.get_value(SettingsConstants.SETTING__WORDLIST_LANGUAGE)
+        rolls = []
+        while len(rolls) < self.num_words:
+            roll = self.run_screen(
+                ToolsDiceWordlistRollScreen,
+                word_number=len(rolls) + 1,
+                total_words=self.num_words,
+                return_after_n_chars=mnemonic_generation.DICE_WORDLIST__DICE_PER_WORD,
+            )
+            if roll == RET_CODE__BACK_BUTTON:
+                return Destination(BackStackView)
+
+            word = mnemonic_generation.dice_wordlist_roll_word(roll, lang)
+            if word is None:
+                self.run_screen(
+                    LargeIconStatusScreen,
+                    title=_("Roll rejected"),
+                    status_icon_name=SeedSignerIconConstants.WARNING,
+                    status_color=GUIConstants.WARNING_COLOR,
+                    status_headline=_("Re-roll"),
+                    # TRANSLATOR_NOTE: the roll was out of the accepted range; the user must re-roll
+                    text=_("This roll is out of range. Please roll six fair dice again."),
+                    button_data=[ButtonOption("Roll again")],
+                    show_back_button=False,
+                )
+                continue
+
+            rolls.append(roll)
+
+            if len(rolls) == self.num_words:
+                final_mnemonic = mnemonic_generation.generate_mnemonic_from_dice_wordlist(rolls, self.num_words, lang)
+                final_word = final_mnemonic[-1]
+                if final_word != word:
+                    self.run_screen(
+                        LargeIconStatusScreen,
+                        title=_("Word {} of {}").format(len(rolls), self.num_words),
+                        status_icon_name=SeedSignerIconConstants.SUCCESS,
+                        status_color=GUIConstants.SUCCESS_COLOR,
+                        status_headline=final_word,
+                        status_headline_untranslated=True,
+                        # TRANSLATOR_NOTE: {} is the word the user rolled, before checksum correction
+                        text=_("Rolled '{}', but the BIP-39 checksum requires the word above.").format(word),
+                        button_data=[ButtonOption("Next")],
+                        show_back_button=False,
+                    )
+                else:
+                    self.run_screen(
+                        LargeIconStatusScreen,
+                        title=_("Word {} of {}").format(len(rolls), self.num_words),
+                        status_headline=word,
+                        status_headline_untranslated=True,
+                        text="",
+                        button_data=[ButtonOption("Next")],
+                        show_back_button=False,
+                    )
+            else:
+                self.run_screen(
+                    LargeIconStatusScreen,
+                    title=_("Word {} of {}").format(len(rolls), self.num_words),
+                    status_headline=word,
+                    status_headline_untranslated=True,
+                    text="",
+                    button_data=[ButtonOption("Next")],
+                    show_back_button=False,
+                )
+
+        # Add the mnemonic as an in-memory Seed (final_mnemonic was computed at the last word)
+        seed = Seed(final_mnemonic, wordlist_language_code=lang)
         self.controller.storage.set_pending_seed(seed)
 
         # Cannot return BACK to this View

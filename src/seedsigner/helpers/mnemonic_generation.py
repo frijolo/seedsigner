@@ -17,6 +17,14 @@ from seedsigner.models.seed import Seed
 DICE__NUM_ROLLS__12WORD = 50
 DICE__NUM_ROLLS__24WORD = 99
 
+# Dice wordlist method: map each 6-dice roll directly to one wordlist word (no hashing).
+# See docs/dice_wordlist.md for the algorithm and proof of uniformity.
+DICE_WORDLIST__DICE_PER_WORD = 6
+DICE_WORDLIST__FACES = 6
+DICE_WORDLIST__WORDLIST_SIZE = 2048
+DICE_WORDLIST__MULTIPLIER = (DICE_WORDLIST__FACES ** DICE_WORDLIST__DICE_PER_WORD) // DICE_WORDLIST__WORDLIST_SIZE  # 22
+DICE_WORDLIST__MIN_REJECTED_VALUE = DICE_WORDLIST__WORDLIST_SIZE * DICE_WORDLIST__MULTIPLIER  # 45056
+
 
 
 def calculate_checksum(mnemonic: list | str, wordlist_language_code: str = SettingsConstants.WORDLIST_LANGUAGE__ENGLISH) -> list[str]:
@@ -110,3 +118,68 @@ def get_partial_final_word(coin_flips: str, wordlist_language_code: str = Settin
     wordlist_index = int(binary_string, 2)
 
     return Seed.get_wordlist(wordlist_language_code)[wordlist_index]
+
+
+
+def dice_wordlist_roll_value(roll: str) -> int:
+    """
+        Convert a 6-dice roll to its base-6 value.
+
+        `roll` is a string of exactly 6 characters, each '1'..'6'. The first character
+        is the most significant digit (the first die rolled).
+
+        e.g. "444444" -> 27993
+    """
+    if len(roll) != DICE_WORDLIST__DICE_PER_WORD:
+        raise ValueError(f"roll must be exactly {DICE_WORDLIST__DICE_PER_WORD} dice; got {len(roll)}")
+    if any(digit not in "123456" for digit in roll):
+        raise ValueError("roll must contain only dice values 1-6")
+
+    value = 0
+    for digit in roll:
+        value = value * DICE_WORDLIST__FACES + (int(digit) - 1)
+    return value
+
+
+
+def dice_wordlist_roll_index(roll: str) -> int | None:
+    """
+        Map a 6-dice roll to a BIP-39 wordlist index (0..2047), or None if rejected.
+    """
+    value = dice_wordlist_roll_value(roll)
+    if value >= DICE_WORDLIST__MIN_REJECTED_VALUE:
+        return None
+    return value // DICE_WORDLIST__MULTIPLIER
+
+
+
+def dice_wordlist_roll_word(roll: str, wordlist_language_code: str = SettingsConstants.WORDLIST_LANGUAGE__ENGLISH) -> str | None:
+    """
+        Return the wordlist word for an accepted 6-dice roll, or None if the roll is
+        rejected.
+    """
+    index = dice_wordlist_roll_index(roll)
+    if index is None:
+        return None
+    return Seed.get_wordlist(wordlist_language_code)[index]
+
+
+
+def generate_mnemonic_from_dice_wordlist(rolls: list[str], num_words: int, wordlist_language_code: str = SettingsConstants.WORDLIST_LANGUAGE__ENGLISH) -> list[str]:
+    """
+        Build a BIP-39 mnemonic from accepted 6-dice rolls. Final word corrected via calculate_checksum().
+    """
+    if num_words not in (12, 24):
+        raise ValueError("num_words must be 12 or 24")
+    if len(rolls) != num_words:
+        raise ValueError(f"expected {num_words} rolls; got {len(rolls)}")
+
+    wordlist = Seed.get_wordlist(wordlist_language_code)
+    words = []
+    for roll in rolls:
+        index = dice_wordlist_roll_index(roll)
+        if index is None:
+            raise ValueError("all rolls must be in range; a rejected roll was passed in")
+        words.append(wordlist[index])
+
+    return calculate_checksum(words, wordlist_language_code)

@@ -281,6 +281,98 @@ class TestToolsFlows(FlowTest):
             ])
 
 
+    def test__dice_wordlist__new_seed__flow(self):
+        """ 12-word flow using the same valid roll 12 times. """
+        self.run_sequence([
+            FlowStep(MainMenuView, button_data_selection=MainMenuView.TOOLS),
+            FlowStep(tools_views.ToolsMenuView, button_data_selection=tools_views.ToolsMenuView.DICE_WORDLIST),
+            FlowStep(tools_views.ToolsDiceWordlistMnemonicLengthView, button_data_selection=tools_views.ToolsDiceWordlistMnemonicLengthView.TWELVE),
+            FlowStep(tools_views.ToolsDiceWordlistEntryView, screen_return_value="162252"),
+            FlowStep(seed_views.SeedWordsWarningView),
+        ])
+
+
+    def test__dice_wordlist__new_seed__flow__rejection(self):
+        """ First roll is rejected (out of range), then 12 valid rolls complete the seed. """
+        from unittest.mock import patch
+        from seedsigner.views.view import View
+        from seedsigner.gui.screens.tools_screens import ToolsDiceWordlistRollScreen
+
+        roll_iter = iter(["666666"] + ["162252"] * 12)
+        def fake_run_screen(self_view, Screen_cls, **kwargs):
+            return next(roll_iter) if Screen_cls is ToolsDiceWordlistRollScreen else 0
+
+        view = tools_views.ToolsDiceWordlistEntryView(num_words=12)
+        with patch.object(View, "run_screen", fake_run_screen):
+            destination = view.run()
+
+        assert destination.View_cls == seed_views.SeedWordsWarningView
+
+
+    def test__dice_wordlist__new_seed__flow__24_words(self):
+        """ 24-word flow using the same valid roll 24 times. """
+        from unittest.mock import patch
+        from seedsigner.views.view import View
+        from seedsigner.gui.screens.tools_screens import ToolsDiceWordlistRollScreen
+
+        roll_iter = iter(["162252"] * 24)
+        def fake_run_screen(self_view, Screen_cls, **kwargs):
+            return next(roll_iter) if Screen_cls is ToolsDiceWordlistRollScreen else 0
+
+        view = tools_views.ToolsDiceWordlistEntryView(num_words=24)
+        with patch.object(View, "run_screen", fake_run_screen):
+            destination = view.run()
+
+        assert destination.View_cls == seed_views.SeedWordsWarningView
+        assert len(view.controller.storage.get_pending_seed().mnemonic_list) == 24
+
+
+    def test__dice_wordlist__last_word__24__shows_rolled_and_final_word(self):
+        """ 24-word path: checksum correction shows both rolled and final word. """
+        from unittest.mock import patch
+        from seedsigner.views.view import View
+        from seedsigner.gui.screens.screen import LargeIconStatusScreen
+        from seedsigner.gui.screens.tools_screens import ToolsDiceWordlistRollScreen
+
+        calls = []
+        def fake_run_screen(self_view, Screen_cls, **kwargs):
+            calls.append((Screen_cls, kwargs))
+            return "111111" if Screen_cls is ToolsDiceWordlistRollScreen else 0
+
+        view = tools_views.ToolsDiceWordlistEntryView(num_words=24)
+        with patch.object(View, "run_screen", fake_run_screen):
+            destination = view.run()
+
+        assert destination.View_cls == seed_views.SeedWordsWarningView
+        last_status_kwargs = [kw for cls, kw in calls if cls is LargeIconStatusScreen][-1]
+        assert last_status_kwargs.get("status_headline_untranslated")
+        assert "'abandon'" in last_status_kwargs.get("text")
+
+
+    def test__dice_wordlist__last_word__shows_rolled_and_final_word(self):
+        """ 12-word path: checksum-corrected final word shows both rolled and stored word. """
+        from unittest.mock import patch
+        from seedsigner.views.view import View
+        from seedsigner.gui.screens.screen import LargeIconStatusScreen
+        from seedsigner.gui.screens.tools_screens import ToolsDiceWordlistRollScreen
+
+        calls = []
+        def fake_run_screen(self_view, Screen_cls, **kwargs):
+            calls.append((Screen_cls, kwargs))
+            return "111111" if Screen_cls is ToolsDiceWordlistRollScreen else 0
+
+        view = tools_views.ToolsDiceWordlistEntryView(num_words=12)
+        with patch.object(View, "run_screen", fake_run_screen):
+            destination = view.run()
+
+        assert destination.View_cls == seed_views.SeedWordsWarningView
+
+        last_status_kwargs = [kw for cls, kw in calls if cls is LargeIconStatusScreen][-1]
+        assert last_status_kwargs.get("status_headline") == "about"
+        assert last_status_kwargs.get("status_headline_untranslated")
+        assert "'abandon'" in last_status_kwargs.get("text")
+
+
 class TestToolsImageEntropyFlows(FlowTest):
 
     def test__image_entropy__incorrect_preview_frame_count_aborts(self):

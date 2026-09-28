@@ -918,6 +918,7 @@ class LargeIconStatusScreen(ButtonListScreen):
     status_icon_size: int = GUIConstants.ICON_PRIMARY_SCREEN_SIZE
     status_color: str = GUIConstants.SUCCESS_COLOR
     status_headline: str = None
+    status_headline_untranslated: bool = False   # Set True if the headline is data (not a UI string) to render as-is
     text: str = ""                          # The body text of the screen
     text_edge_padding: int = GUIConstants.EDGE_PADDING
     button_data: list = None
@@ -940,8 +941,13 @@ class LargeIconStatusScreen(ButtonListScreen):
 
         next_y = self.status_icon.screen_y + self.status_icon.height + int(GUIConstants.COMPONENT_PADDING/2)
         if self.status_headline:
+            # By default the headline is a UI string and is wrapped for just-in-time
+            # translation. If it holds data the user must read verbatim (e.g. a mnemonic
+            # word), it must NOT be run through gettext or a word that collides with a
+            # translatable string could be shown in its translated form.
+            headline_text = self.status_headline if self.status_headline_untranslated else _(self.status_headline)
             self.warning_headline_textarea = TextArea(
-                text=_(self.status_headline),  # Wrap here for just-in-time translations
+                text=headline_text,
                 width=self.canvas_width,
                 screen_y=next_y,
                 font_color=self.status_color,

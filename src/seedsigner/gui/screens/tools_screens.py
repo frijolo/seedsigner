@@ -333,6 +333,50 @@ class ToolsDiceEntropyEntryScreen(KeyboardScreen):
 
 
 @dataclass
+class ToolsDiceWordlistRollScreen(KeyboardScreen):
+    word_number: int = 1
+    total_words: int = 12
+
+    def __post_init__(self):
+        # TRANSLATOR_NOTE: current die (1-based) / total dice · word number / total words
+        self.title = _("{}/{} · {}/{}").format(1, self.return_after_n_chars, self.word_number, self.total_words)
+        self.custom_additional_keys = [Keyboard.KEY_BACKSPACE]
+
+        # Specify the keys in the keyboard
+        self.rows = 3
+        self.cols = 3
+        self.keyboard_font_name = GUIConstants.ICON_FONT_NAME__FONT_AWESOME
+        self.keyboard_font_size = 36
+        self.keys_charset = "".join([
+            FontAwesomeIconConstants.DICE_ONE,
+            FontAwesomeIconConstants.DICE_TWO,
+            FontAwesomeIconConstants.DICE_THREE,
+            FontAwesomeIconConstants.DICE_FOUR,
+            FontAwesomeIconConstants.DICE_FIVE,
+            FontAwesomeIconConstants.DICE_SIX,
+        ])
+
+        # Map Key display chars to actual output values
+        self.keys_to_values = {
+            FontAwesomeIconConstants.DICE_ONE: "1",
+            FontAwesomeIconConstants.DICE_TWO: "2",
+            FontAwesomeIconConstants.DICE_THREE: "3",
+            FontAwesomeIconConstants.DICE_FOUR: "4",
+            FontAwesomeIconConstants.DICE_FIVE: "5",
+            FontAwesomeIconConstants.DICE_SIX: "6",
+        }
+
+        # Now initialize the parent class
+        super().__post_init__()
+
+    def update_title(self) -> bool:
+        # TRANSLATOR_NOTE: current die (1-based) / total dice · word number / total words
+        self.title = _("{}/{} · {}/{}").format(self.cursor_position + 1, self.return_after_n_chars, self.word_number, self.total_words)
+        return True
+
+
+
+@dataclass
 class ToolsCalcFinalWordFinalizePromptScreen(ButtonListScreen):
     mnemonic_length: int = None
     num_entropy_bits: int = None
