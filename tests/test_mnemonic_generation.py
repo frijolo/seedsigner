@@ -1,5 +1,6 @@
 import pytest
 import random
+from collections import Counter
 
 from embit import bip39
 from seedsigner.helpers import mnemonic_generation
@@ -195,3 +196,131 @@ def test_50_dice_rolls():
     actual = " ".join(mnemonic)
     assert bip39.mnemonic_is_valid(actual)
     assert actual == expected
+
+
+
+# --- Dice wordlist method (direct 5-dice -> wordlist word) ---
+# See docs/dice_wordlist.md for the algorithm and canonical vectors.
+
+DICE_WORDLIST_ROLLS_12 = ["22222"] * 12
+DICE_WORDLIST_ROLLS_24 = ["22222"] * 24
+
+
+def test_dice_wordlist_roll_value():
+    """ A 5-dice roll converts to its base-6 value (first die is most significant). """
+    assert mnemonic_generation.dice_wordlist_roll_value("12345") == 310
+    assert mnemonic_generation.dice_wordlist_roll_value("11111") == 0
+    assert mnemonic_generation.dice_wordlist_roll_value("66666") == 7775
+    assert mnemonic_generation.dice_wordlist_roll_value("44444") == 4665
+    assert mnemonic_generation.dice_wordlist_roll_value("55555") == 6220
+
+
+def test_dice_wordlist_roll_index():
+    """ index = value // 3; rejected (None) when index >= 2048, i.e. value >= 6144. """
+    assert mnemonic_generation.dice_wordlist_roll_index("11111") == 0
+    assert mnemonic_generation.dice_wordlist_roll_index("44444") == 1555   # accepted
+    assert mnemonic_generation.dice_wordlist_roll_index("55555") is None   # min rejected
+    assert mnemonic_generation.dice_wordlist_roll_index("66666") is None
+
+
+def test_dice_wordlist_roll_word():
+    """ An accepted roll maps to its wordlist word; a rejected roll maps to None. """
+    assert mnemonic_generation.dice_wordlist_roll_word("11111") == "abandon"
+    assert mnemonic_generation.dice_wordlist_roll_word("22222") == "dolphin"
+    assert mnemonic_generation.dice_wordlist_roll_word("33333") == "light"
+    assert mnemonic_generation.dice_wordlist_roll_word("44444") == "second"
+    assert mnemonic_generation.dice_wordlist_roll_word("55555") is None
+    assert mnemonic_generation.dice_wordlist_roll_word("66666") is None
+
+
+def test_dice_wordlist_known_mnemonics():
+    """ The canonical 12- and 24-word vectors from docs/dice_wordlist.md. """
+    expected_12 = "dolphin dolphin dolphin dolphin dolphin dolphin dolphin dolphin dolphin dolphin dolphin dog"
+    mnemonic = mnemonic_generation.generate_mnemonic_from_dice_wordlist(DICE_WORDLIST_ROLLS_12, 12)
+    assert bip39.mnemonic_is_valid(" ".join(mnemonic))
+    assert " ".join(mnemonic) == expected_12
+
+    expected_24 = "dolphin dolphin dolphin dolphin dolphin dolphin dolphin dolphin dolphin dolphin dolphin dolphin dolphin dolphin dolphin dolphin dolphin dolphin dolphin dolphin dolphin dolphin dolphin gallery"
+    mnemonic = mnemonic_generation.generate_mnemonic_from_dice_wordlist(DICE_WORDLIST_ROLLS_24, 24)
+    assert bip39.mnemonic_is_valid(" ".join(mnemonic))
+    assert " ".join(mnemonic) == expected_24
+
+
+def test_dice_wordlist_checksum_corrects_final_word():
+    """ Only the final word is adjusted to satisfy the BIP-39 checksum. """
+    # All rolls produce "dolphin"; the 12th word is corrected to "dog".
+    assert mnemonic_generation.dice_wordlist_roll_word("22222") == "dolphin"
+    expected_12 = "dolphin dolphin dolphin dolphin dolphin dolphin dolphin dolphin dolphin dolphin dolphin dog"
+    assert " ".join(mnemonic_generation.generate_mnemonic_from_dice_wordlist(DICE_WORDLIST_ROLLS_12, 12)) == expected_12
+
+
+def test_dice_wordlist_checksum_only_changes_final_word():
+    """
+    Property: for arbitrary accepted rolls, calculate_checksum() leaves the first N-1
+    words untouched and changes the final word only in its low 4 bits (12w) / 8 bits
+    (24w), preserving the high bits that carry the real entropy.
+    """
+    random.seed(1337)
+    for num_words in (12, 24):
+        num_checksum_bits = 4 if num_words == 12 else 8
+        # A word index is 11 bits; keep the high bits by clearing the low checksum bits.
+        high_mask = 0b11111111111 & ~((1 << num_checksum_bits) - 1)
+        for _ in range(50):
+            # Rejection-sample in-range rolls (deterministic seed above)
+            rolls = []
+            while len(rolls) < num_words:
+                roll = "".join(str(random.randint(1, 6)) for _ in range(5))
+                if mnemonic_generation.dice_wordlist_roll_index(roll) is not None:
+                    rolls.append(roll)
+
+            rolled_words = [mnemonic_generation.dice_wordlist_roll_word(r) for r in rolls]
+            final_words = mnemonic_generation.generate_mnemonic_from_dice_wordlist(rolls, num_words)
+
+            # The first N-1 words are exactly the words the user rolled
+            assert final_words[:-1] == rolled_words[:-1]
+
+            # The final word may only differ in its low checksum bits; high bits preserved.
+            rolled_idx = bip39.WORDLIST.index(rolled_words[-1])
+            final_idx = bip39.WORDLIST.index(final_words[-1])
+            assert (rolled_idx & high_mask) == (final_idx & high_mask)
+
+            # And the result is a valid BIP-39 mnemonic.
+            assert bip39.mnemonic_is_valid(" ".join(final_words))
+
+
+def test_dice_wordlist_uniformity():
+    """ Every accepted index 0..2047 has exactly 3 preimages; value >= 6144 is rejected. """
+    counts = Counter()
+    rejected = 0
+    for value in range(6 ** 5):
+        index = value // 3
+        if index < mnemonic_generation.DICE_WORDLIST__WORDLIST_SIZE:
+            counts[index] += 1
+        else:
+            rejected += 1
+
+    # Uniform: each of the 2048 indices has exactly 3 preimages
+    assert len(counts) == mnemonic_generation.DICE_WORDLIST__WORDLIST_SIZE
+    assert set(counts.values()) == {3}
+
+    # Exactly 6144 accepted and 1632 rejected (the hard floor for 5 dice). The accepted
+    # count equals the rejection threshold: values [0, MIN_REJECTED_VALUE) are accepted.
+    assert sum(counts.values()) == mnemonic_generation.DICE_WORDLIST__MIN_REJECTED_VALUE
+    assert rejected == 6 ** 5 - mnemonic_generation.DICE_WORDLIST__MIN_REJECTED_VALUE
+
+
+def test_dice_wordlist_invalid_input():
+    """ Rolls must be exactly 5 dice of value 1-6; rejected rolls / bad counts raise. """
+    for bad in ["1234", "123456", "12347", "abcdef", ""]:
+        with pytest.raises(ValueError):
+            mnemonic_generation.dice_wordlist_roll_value(bad)
+
+    # A rejected roll cannot be part of a mnemonic
+    with pytest.raises(ValueError):
+        mnemonic_generation.generate_mnemonic_from_dice_wordlist(DICE_WORDLIST_ROLLS_12[:-1] + ["55555"], 12)
+
+    # Wrong number of words / rolls
+    with pytest.raises(ValueError):
+        mnemonic_generation.generate_mnemonic_from_dice_wordlist(DICE_WORDLIST_ROLLS_12, 24)
+    with pytest.raises(ValueError):
+        mnemonic_generation.generate_mnemonic_from_dice_wordlist(DICE_WORDLIST_ROLLS_12, 13)
