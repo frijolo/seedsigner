@@ -34,7 +34,7 @@ h1 img { height: 1.1em; vertical-align: middle; }
 .lbox.prod { background: #1a1a2e; border: 2px solid #7c4dff; color: #b388ff; }
 .larr { color: var(--btc); font-weight: 700; font-size: 0.92em; line-height: 1; padding: 0; text-align: center; }
 
-/* Sum block: full-width result of the 6 products */
+/* Sum block: full-width result of the 5 products */
 .sumwrap { width: fit-content; margin: 0 auto; }
 .plusrow { display: flex; gap: 10px; margin-top: 8px; }
 .plusrow span { width: 80px; text-align: center; color: var(--btc); font-weight: 700; font-size: 1.1em; }
@@ -57,23 +57,16 @@ h1 img { height: 1.1em; vertical-align: middle; }
 </head>
 <body>
 <div class="wrap">
-<h1><img src="dice/d6_6.svg" class="dice sm" style="display:inline-block"> Dice → Word</h1>
+<h1><img src="dice/d6_5.svg" class="dice sm" style="display:inline-block"> Dice → Word</h1>
 <p class="sub">Turn your dice rolls into a word in your seed</p>
 
 <!-- === MÉTODO: COLUMNAS === -->
 <div class="recipe">
 <h3>By columns</h3>
-<p class="excap">Example: the roll 5 · 2 · 6 · 6 · 4 · 5 gives the word "satoshi"</p>
+<p class="excap">Example: the roll 2 · 2 · 2 · 2 · 2 gives the word "dolphin"</p>
 
 <div class="sumwrap">
 <div class="cols">
-<div class="lane">
-  <img class="dice" src="dice/d6_5.svg" alt="die 5">
-  <div class="larr">− 1</div>
-  <div class="lbox calc">4</div>
-  <div class="larr">× 7776</div>
-  <div class="lbox prod">31104</div>
-</div>
 <div class="lane">
   <img class="dice" src="dice/d6_2.svg" alt="die 2">
   <div class="larr">− 1</div>
@@ -82,68 +75,68 @@ h1 img { height: 1.1em; vertical-align: middle; }
   <div class="lbox prod">1296</div>
 </div>
 <div class="lane">
-  <img class="dice" src="dice/d6_6.svg" alt="die 6">
+  <img class="dice" src="dice/d6_2.svg" alt="die 2">
   <div class="larr">− 1</div>
-  <div class="lbox calc">5</div>
+  <div class="lbox calc">1</div>
   <div class="larr">× 216</div>
-  <div class="lbox prod">1080</div>
+  <div class="lbox prod">216</div>
 </div>
 <div class="lane">
-  <img class="dice" src="dice/d6_6.svg" alt="die 6">
+  <img class="dice" src="dice/d6_2.svg" alt="die 2">
   <div class="larr">− 1</div>
-  <div class="lbox calc">5</div>
+  <div class="lbox calc">1</div>
   <div class="larr">× 36</div>
-  <div class="lbox prod">180</div>
+  <div class="lbox prod">36</div>
 </div>
 <div class="lane">
-  <img class="dice" src="dice/d6_4.svg" alt="die 4">
+  <img class="dice" src="dice/d6_2.svg" alt="die 2">
   <div class="larr">− 1</div>
-  <div class="lbox calc">3</div>
+  <div class="lbox calc">1</div>
   <div class="larr">× 6</div>
-  <div class="lbox prod">18</div>
+  <div class="lbox prod">6</div>
 </div>
 <div class="lane">
-  <img class="dice" src="dice/d6_5.svg" alt="die 5">
+  <img class="dice" src="dice/d6_2.svg" alt="die 2">
   <div class="larr">− 1</div>
-  <div class="lbox calc">4</div>
+  <div class="lbox calc">1</div>
   <div class="larr">× 1</div>
-  <div class="lbox prod">4</div>
+  <div class="lbox prod">1</div>
 </div>
 </div>
 <div class="plusrow">
-  <span>+</span><span>+</span><span>+</span><span>+</span><span>+</span><span>+</span>
+  <span>+</span><span>+</span><span>+</span><span>+</span><span>+</span>
 </div>
-<div class="sumbox">31104 + 1296 + 1080 + 180 + 18 + 4 = 33682</div>
+<div class="sumbox">1296 + 216 + 36 + 6 + 1 = 1555</div>
 </div>
 
 <div class="vflow">
-  <div class="farr">÷ 22</div>
-  <div class="fbox num">1531</div>
+  <div class="farr">÷ 3</div>
+  <div class="fbox num">518</div>
   <div class="farr">in range 0–2047?</div>
-  <div class="fbox word">satoshi ✓</div>
+  <div class="fbox word">dolphin ✓</div>
 </div>
 </div>
 
 <div class="steps">
-<div class="stp"><span class="stp-n">1</span><span class="stp-t">Roll six dice and place them in a row, in the order they came up.</span></div>
+<div class="stp"><span class="stp-n">1</span><span class="stp-t">Roll five dice and place them in a row, in the order they came up.</span></div>
 <div class="stp"><span class="stp-n">2</span><span class="stp-t">Subtract 1 from each. (Rolled a 1? It's now 0.)</span></div>
-<div class="stp"><span class="stp-n">3</span><span class="stp-t">Multiply each result by its weight, left to right: <strong>7776, 1296, 216, 36, 6, 1</strong></span></div>
-<div class="stp"><span class="stp-n">4</span><span class="stp-t">Add the six products together. That's your <strong>value</strong>.</span></div>
-<div class="stp"><span class="stp-n">5</span><span class="stp-t">Divide by <strong>22</strong> and keep only the <strong>integer part</strong> (ignore any remainder). Result ≤ 2047? → that's your word! Result ≥ 2048? → re-roll.</span></div>
+<div class="stp"><span class="stp-n">3</span><span class="stp-t">Multiply each result by its weight, left to right: <strong>1296, 216, 36, 6, 1</strong></span></div>
+<div class="stp"><span class="stp-n">4</span><span class="stp-t">Add the five products together. That's your <strong>value</strong>.</span></div>
+<div class="stp"><span class="stp-n">5</span><span class="stp-t">Divide by <strong>3</strong> and keep only the <strong>integer part</strong> (ignore any remainder). Result ≤ 2047? → that's your word! Result ≥ 2048? → re-roll.</span></div>
 </div>
 
 <div class="note">
-<strong>💡</strong> The weights are powers of 6: 6⁵=7776, 6⁴=1296, 6³=216, 6²=36, 6¹=6, 6⁰=1. You only need to memorize them once.
+<strong>💡</strong> The weights are powers of 6: 6⁴=1296, 6³=216, 6²=36, 6¹=6, 6⁰=1. You only need to memorize them once.
 </div>
 
 <div class="note">
-<strong>🔢 The index starts at 0.</strong> The division result is the word's position in the BIP-39 wordlist <em>counting from 0</em>: "abandon" = 0 … "zoo" = 2047. In the example, "satoshi" is word #<strong>1531</strong>.<br><br>
-If your printed wordlist numbers words starting from <strong>1</strong> ("abandon" = 1), look at row <strong>1532</strong>: simply <strong>add 1</strong> to the index.<br><br>
+<strong>🔢 The index starts at 0.</strong> The division result is the word's position in the BIP-39 wordlist <em>counting from 0</em>: "abandon" = 0 … "zoo" = 2047. In the example, "dolphin" is word #<strong>518</strong>.<br><br>
+If your printed wordlist numbers words starting from <strong>1</strong> ("abandon" = 1), look at row <strong>519</strong>: simply <strong>add 1</strong> to the index.<br><br>
 <strong>Quick rule:</strong> check where "abandon" sits in your wordlist. If it's at position 1, add 1 to your result. If it's at position 0, use it as-is.
 </div>
 
 <div class="note">
-<strong>♻️ You'll almost never need to re-roll.</strong> A roll is rejected only when the value maps to an index ≥ 2048, which happens in about 3 out of every 100 rolls. If it happens much more often, check that your dice are fair.
+<strong>♻️ Re-rolls happen about once every 5 rolls.</strong> A roll is rejected only when the value maps to an index ≥ 2048, which happens in about 1 in 5 rolls. If it happens much more often, check that your dice are fair.
 </div>
 
 <p class="credit">Dice images: Wikimedia Commons (CC BY-SA 3.0) · Wordlist: BIP-39</p>
