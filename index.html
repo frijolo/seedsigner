@@ -63,23 +63,23 @@ h1 img { height: 1.1em; vertical-align: middle; }
 <!-- === MÉTODO: COLUMNAS === -->
 <div class="recipe">
 <h3>By columns</h3>
-<p class="excap">Example: the roll 2 · 2 · 2 · 2 · 2 gives the word "dolphin"</p>
+<p class="excap">Example: the roll 4 · 4 · 2 · 4 · 4 gives the word "satoshi"</p>
 
 <div class="sumwrap">
 <div class="cols">
 <div class="lane">
-  <img class="dice" src="dice/d6_2.svg" alt="die 2">
+  <img class="dice" src="dice/d6_4.svg" alt="die 4">
   <div class="larr">− 1</div>
-  <div class="lbox calc">1</div>
+  <div class="lbox calc">3</div>
   <div class="larr">× 1296</div>
-  <div class="lbox prod">1296</div>
+  <div class="lbox prod">3888</div>
 </div>
 <div class="lane">
-  <img class="dice" src="dice/d6_2.svg" alt="die 2">
+  <img class="dice" src="dice/d6_4.svg" alt="die 4">
   <div class="larr">− 1</div>
-  <div class="lbox calc">1</div>
+  <div class="lbox calc">3</div>
   <div class="larr">× 216</div>
-  <div class="lbox prod">216</div>
+  <div class="lbox prod">648</div>
 </div>
 <div class="lane">
   <img class="dice" src="dice/d6_2.svg" alt="die 2">
@@ -89,31 +89,31 @@ h1 img { height: 1.1em; vertical-align: middle; }
   <div class="lbox prod">36</div>
 </div>
 <div class="lane">
-  <img class="dice" src="dice/d6_2.svg" alt="die 2">
+  <img class="dice" src="dice/d6_4.svg" alt="die 4">
   <div class="larr">− 1</div>
-  <div class="lbox calc">1</div>
+  <div class="lbox calc">3</div>
   <div class="larr">× 6</div>
-  <div class="lbox prod">6</div>
+  <div class="lbox prod">18</div>
 </div>
 <div class="lane">
-  <img class="dice" src="dice/d6_2.svg" alt="die 2">
+  <img class="dice" src="dice/d6_4.svg" alt="die 4">
   <div class="larr">− 1</div>
-  <div class="lbox calc">1</div>
+  <div class="lbox calc">3</div>
   <div class="larr">× 1</div>
-  <div class="lbox prod">1</div>
+  <div class="lbox prod">3</div>
 </div>
 </div>
 <div class="plusrow">
   <span>+</span><span>+</span><span>+</span><span>+</span><span>+</span>
 </div>
-<div class="sumbox">1296 + 216 + 36 + 6 + 1 = 1555</div>
+<div class="sumbox">3888 + 648 + 36 + 18 + 3 = 4593</div>
 </div>
 
 <div class="vflow">
   <div class="farr">÷ 3</div>
-  <div class="fbox num">518</div>
+  <div class="fbox num">1531</div>
   <div class="farr">in range 0–2047?</div>
-  <div class="fbox word">dolphin ✓</div>
+  <div class="fbox word">satoshi ✓</div>
 </div>
 </div>
 
@@ -130,8 +130,8 @@ h1 img { height: 1.1em; vertical-align: middle; }
 </div>
 
 <div class="note">
-<strong>🔢 The index starts at 0.</strong> The division result is the word's position in the BIP-39 wordlist <em>counting from 0</em>: "abandon" = 0 … "zoo" = 2047. In the example, "dolphin" is word #<strong>518</strong>.<br><br>
-If your printed wordlist numbers words starting from <strong>1</strong> ("abandon" = 1), look at row <strong>519</strong>: simply <strong>add 1</strong> to the index.<br><br>
+<strong>🔢 The index starts at 0.</strong> The division result is the word's position in the BIP-39 wordlist <em>counting from 0</em>: "abandon" = 0 … "zoo" = 2047. In the example, "satoshi" is word #<strong>1531</strong>.<br><br>
+If your printed wordlist numbers words starting from <strong>1</strong> ("abandon" = 1), look at row <strong>1532</strong>: simply <strong>add 1</strong> to the index.<br><br>
 <strong>Quick rule:</strong> check where "abandon" sits in your wordlist. If it's at position 1, add 1 to your result. If it's at position 0, use it as-is.
 </div>
 
